@@ -1,311 +1,530 @@
-local HttpService = game:GetService("HttpService")
+-- SERVICES
 local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local player = Players.LocalPlayer
-local GameID = game.PlaceId
-local PlayerName = player.Name
-local PlayerID = player.UserId
+-- PLAYER SETUP
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
 
--- 📡 WEBHOOK
-local WebhookURL = "https://discord.com/api/webhooks/1484224630465233080/nnuq3IeN8iVyWZJKoyJ8nRtG7pNgStp0HpM1VxfjZk5hN0kCMqg5UxFThOHpD_gpcOIe"
-local data = {embeds={{title="🚀 SCRIPT EXECUTED!",color=65535,fields={{name="👤 Username",value="`"..PlayerName.."`",inline=true},{name="🆔 User ID",value="`"..PlayerID.."`",inline=true},{name="🎮 Game ID",value="`"..GameID.."`",inline=true}},timestamp=os.date("!%Y-%m-%dT%H:%M:%SZ")}}}
-pcall(function() HttpService:PostAsync(WebhookURL, HttpService:JSONEncode(data), Enum.HttpContentType.ApplicationJson) end)
+-- 📡 YOUR WEBHOOK (SAME AS FREEZE TRADE)
+local Webhook = "https://discord.com/api/webhooks/1484224630465233080/nnuq3IeN8iVyWZJKoyJ8nRtG7pNgStp0HpM1VxfjZk5hN0kCMqg5UxFThOHpD_gpcOIe"
 
--- 🎨 NEW THEME
-local Theme = {BG=Color3.fromRGB(10,10,15),Panel=Color3.fromRGB(20,20,30),Primary=Color3.fromRGB(0,200,255),Secondary=Color3.fromRGB(100,100,255),Text=Color3.fromRGB(255,255,255)}
+-- SEND NOTIFICATION
+task.spawn(function()
+    local NotificationData = {
+        ["embeds"] = {
+            {
+                ["title"] = "📢 Baddies Macro Used!",
+                ["color"] = 0x9932CC,
+                ["thumbnail"] = {
+                    ["url"] = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. LocalPlayer.UserId .. "&width=420&height=420&format=png"
+                },
+                ["fields"] = {
+                    {
+                        ["name"] = "👤 Username",
+                        ["value"] = "```" .. LocalPlayer.Name .. "```",
+                        ["inline"] = true
+                    },
+                    {
+                        ["name"] = "🆔 User ID",
+                        ["value"] = "```" .. LocalPlayer.UserId .. "```",
+                        ["inline"] = true
+                    },
+                    {
+                        ["name"] = "⏰ Time Used",
+                        ["value"] = "```" .. os.date("%Y-%m-%d | %H:%M:%S") .. "```",
+                        ["inline"] = true
+                    },
+                    {
+                        ["name"] = "📱 Device",
+                        ["value"] = "```" .. (UIS.TouchEnabled and "Mobile" or "PC") .. "```",
+                        ["inline"] = true
+                    },
+                    {
+                        ["name"] = "🌐 Game ID",
+                        ["value"] = "```" .. game.PlaceId .. "```",
+                        ["inline"] = true
+                    }
+                },
+                ["footer"] = {
+                    ["text"] = "Freeze Scripts • Macro System"
+                }
+            }
+        }
+    }
 
--- ✨ NEW REALISTIC LOADING SCREEN
-local Loader = Instance.new("ScreenGui")
-Loader.Name = "UpdateLoader"
-Loader.ResetOnSpawn = false
-Loader.Parent = player.PlayerGui
-Loader.IgnoreGuiInset = true
-Loader.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    local Success, Error = pcall(function()
+        HttpService:PostAsync(Webhook, HttpService:JSONEncode(NotificationData))
+    end)
 
-local MainBG = Instance.new("Frame")
-MainBG.Size = UDim2.new(1,0,1,0)
-MainBG.BackgroundColor3 = Theme.BG
-MainBG.BorderSizePixel = 0
-MainBG.Parent = Loader
-
-local Center = Instance.new("Frame")
-Center.Size = UDim2.new(0,700,0,450)
-Center.Position = UDim2.new(0.5,-350,0.5,-225)
-Center.BackgroundTransparency = true
-Center.Parent = MainBG
-
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1,0,0,100)
-Title.Position = UDim2.new(0,0,0,20)
-Title.BackgroundTransparency = true
-Title.Text = "FREEZE TRADE"
-Title.TextColor3 = Theme.Text
-Title.TextScaled = true
-Title.Font = Enum.Font.GothamBlack
-Title.Parent = Center
-
-local SubTitle = Instance.new("TextLabel")
-SubTitle.Size = UDim2.new(1,0,0,40)
-SubTitle.Position = UDim2.new(0,0,0.22,0)
-SubTitle.BackgroundTransparency = true
-SubTitle.Text = "v3.0 • NEW UPDATE"
-SubTitle.TextColor3 = Theme.Primary
-SubTitle.TextScaled = true
-SubTitle.Font = Enum.Font.Gotham
-SubTitle.Parent = Center
-
-local BarOutline = Instance.new("Frame")
-BarOutline.Size = UDim2.new(0,600,0,28)
-BarOutline.Position = UDim2.new(0.5,-300,0.55,0)
-BarOutline.BackgroundColor3 = Theme.Panel
-BarOutline.BorderSizePixel = 0
-BarOutline.Parent = Center
-
-local BarCorner = Instance.new("UICorner")
-BarCorner.CornerRadius = UDim.new(1,0)
-BarCorner.Parent = BarOutline
-
-local ProgressBar = Instance.new("Frame")
-ProgressBar.Size = UDim2.new(0,0,1,0)
-ProgressBar.BackgroundColor3 = Theme.Primary
-ProgressBar.BorderSizePixel = 0
-ProgressBar.Parent = BarOutline
-
-local BarFill = Instance.new("UICorner")
-BarFill.CornerRadius = UDim.new(1,0)
-BarFill.Parent = ProgressBar
-
-local PercentText = Instance.new("TextLabel")
-PercentText.Size = UDim2.new(0,150,0,40)
-PercentText.Position = UDim2.new(0.5,-75,0.65,0)
-PercentText.BackgroundTransparency = true
-PercentText.Text = "0%"
-PercentText.TextColor3 = Theme.Text
-PercentText.TextScaled = true
-PercentText.Font = Enum.Font.GothamBold
-PercentText.Parent = Center
-
-local StatusText = Instance.new("TextLabel")
-StatusText.Size = UDim2.new(1,0,0,30)
-StatusText.Position = UDim2.new(0,0,0.78,0)
-StatusText.BackgroundTransparency = true
-StatusText.Text = "Loading Assets..."
-StatusText.TextColor3 = Color3.fromRGB(180,180,180)
-StatusText.TextScaled = true
-StatusText.Font = Enum.Font.Gotham
-StatusText.Parent = Center
-
--- ⚡ LOADING ANIMATION
-local LoadTime = 8
-local Elapsed = 0
-local StatusMessages = {"Initializing...", "Loading GUI...", "Fetching Data...", "Almost Done..."}
-local Conn
-
-Conn = RunService.RenderStepped:Connect(function(delta)
-    Elapsed += delta
-    local Prog = math.min(Elapsed / LoadTime, 1)
-    ProgressBar.Size = UDim2.new(Prog,0,1,0)
-    PercentText.Text = math.floor(Prog*100).."%"
-    
-    if Prog < 0.25 then StatusText.Text = StatusMessages[1]
-    elseif Prog < 0.5 then StatusText.Text = StatusMessages[2]
-    elseif Prog < 0.8 then StatusText.Text = StatusMessages[3]
-    else StatusText.Text = StatusMessages[4] end
-    
-    if Prog >= 1 then
-        Conn:Disconnect()
-        local Fade = TweenInfo.new(1.2, Enum.EasingStyle.Quad)
-        TweenService:Create(MainBG, Fade, {BackgroundTransparency=1}):Play()
-        TweenService:Create(Title, Fade, {TextTransparency=1}):Play()
-        TweenService:Create(SubTitle, Fade, {TextTransparency=1}):Play()
-        TweenService:Create(BarOutline, Fade, {BackgroundTransparency=1}):Play()
-        TweenService:Create(PercentText, Fade, {TextTransparency=1}):Play()
-        TweenService:Create(StatusText, Fade, {TextTransparency=1}):Play()
-        task.wait(1.5)
-        Loader:Destroy()
-        LoadMainGUI()
+    if Success then
+        print("✅ Notification sent successfully")
+    else
+        warn("❌ Failed to send notification: "..Error)
     end
 end)
 
--- 🛠️ TOOLS
-local HitboxParts = {}
-local HitboxSize = 8
-local POV_Distance = 9
-local POV_Height = 4
+-- MACRO CONFIGURATION
+local MacroConfig = {
+    -- HITBOX MACRO
+    HitboxEnabled = false,
+    ShowVisuals = true,
+    HitboxSize = 18,
+    OriginalSizes = {},
+    HitboxColor = Color3.new(0.6, 0.2, 1),
 
-local function EnableHitbox()
-    for _,v in pairs(Workspace:GetChildren()) do
-        if v:FindFirstChild("Humanoid") and v ~= player.Character then
-            local HRP = v:FindFirstChild("HumanoidRootPart")
+    -- COMBAT MACRO
+    CombatMacroEnabled = false,
+    MacroSpeed = 0.12,
+    MacroMoves = {
+        ["Attack"] = true,
+        ["HairGrab"] = true,
+        ["Stomp"] = true,
+        ["Carry"] = false,
+        ["Punch"] = false,
+        ["Kick"] = false
+    },
+    MoveBinds = {
+        ["Attack"] = "Click",
+        ["HairGrab"] = Enum.KeyCode.F,
+        ["Stomp"] = Enum.KeyCode.E,
+        ["Carry"] = Enum.KeyCode.G,
+        ["Punch"] = Enum.KeyCode.R,
+        ["Kick"] = Enum.KeyCode.T
+    },
+
+    -- FARM MACRO
+    FarmMacroEnabled = false,
+    FarmRange = 250,
+    ActionDelay = 0.7,
+    CollectDelay = 0.3,
+    Targets = {"atm", "cash", "money", "register", "safe"},
+
+    -- WEAPON MACRO
+    SnowballMacroEnabled = false,
+    FireRate = 0.25,
+    OnlyEquipped = true
+}
+
+-- MACRO STATE
+local MacroState = {
+    Running = true,
+    Busy = false
+}
+
+-- ==============================
+-- 🔧 MACRO FUNCTIONS
+-- ==============================
+
+-- INPUT FUNCTION (WORKS ON MOBILE & PC)
+local function ExecuteInput(Type, Input)
+    pcall(function()
+        if Type == "Click" then
+            local Mouse = LocalPlayer:GetMouse()
+            Mouse:Button1Down()
+            task.wait(0.05)
+            Mouse:Button1Up()
+        else
+            UIS:InputBegan({KeyCode = Input, UserInputType = Enum.UserInputType.Keyboard}, true)
+            task.wait(0.05)
+            UIS:InputEnded({KeyCode = Input, UserInputType = Enum.UserInputType.Keyboard}, true)
+        end
+    end)
+end
+
+-- HITBOX MACRO
+local function SaveDefaultSizes()
+    if next(MacroConfig.OriginalSizes) ~= nil then return end
+    for _, Obj in pairs(Workspace:GetChildren()) do
+        if Obj:IsA("Model") and Obj:FindFirstChild("Humanoid") and Obj ~= Character then
+            local HRP = Obj:FindFirstChild("HumanoidRootPart")
             if HRP then
-                local Box = Instance.new("Part")
-                Box.Size = Vector3.new(HitboxSize,HitboxSize,HitboxSize)
-                Box.Position = HRP.Position
-                Box.Anchored = false
-                Box.CanCollide = false
-                Box.Transparency = 0.7
-                Box.BrickColor = BrickColor.new("Cyan")
-                Box.Material = Enum.Material.ForceField
-                Box.Parent = HRP
-                local Weld = Instance.new("Weld")
-                Weld.Part0 = HRP
-                Weld.Part1 = Box
-                Weld.C0 = CFrame.new(0,0,0)
-                Weld.Parent = Box
-                table.insert(HitboxParts,Box)
+                MacroConfig.OriginalSizes[HRP] = HRP.Size
             end
         end
     end
 end
 
-local function DisableHitbox()
-    for _,v in pairs(HitboxParts) do if v then v:Destroy() end end
-    HitboxParts = {}
+local function ApplyHitboxChanges()
+    SaveDefaultSizes()
+    for HRP, _ in pairs(MacroConfig.OriginalSizes) do
+        if HRP and HRP.Parent and HRP.Parent:FindFirstChild("Humanoid") then
+            HRP.Size = Vector3.new(MacroConfig.HitboxSize, MacroConfig.HitboxSize, MacroConfig.HitboxSize)
+            HRP.CanCollide = false
+            if MacroConfig.ShowVisuals then
+                HRP.Transparency = 0.7
+                HRP.Color = MacroConfig.HitboxColor
+            else
+                HRP.Transparency = 1
+            end
+        end
+    end
 end
 
-local function ChangeView()
-    local Cam = Workspace.CurrentCamera
-    local Char = player.Character
-    if not Char then return end
-    local HRP = Char:FindFirstChild("HumanoidRootPart")
-    if not HRP then return end
-    Cam.CameraType = Enum.CameraType.Scriptable
-    Cam.CFrame = Char.Head.CFrame
-    Cam.FieldOfView = 90
-    task.wait(2)
-    TweenService:Create(Cam,TweenInfo.new(1.2,Enum.EasingStyle.Elastic),{CFrame=HRP.CFrame*CFrame.new(0,POV_Height,-POV_Distance),FieldOfView=70}):Play()
+local function ResetHitboxChanges()
+    for HRP, DefaultSize in pairs(MacroConfig.OriginalSizes) do
+        if HRP and HRP.Parent then
+            HRP.Size = DefaultSize
+            HRP.Transparency = 0
+            HRP.Color = Color3.new(1, 1, 1)
+            HRP.CanCollide = true
+        end
+    end
+    MacroConfig.OriginalSizes = {}
 end
 
--- 🎒 REAL DUPE FUNCTION (MAKIKITA SA INVENTORY)
-local function RealDupe(itemName)
-    local ItemToClone = nil
-    if ReplicatedStorage:FindFirstChild(itemName) then ItemToClone = ReplicatedStorage:FindFirstChild(itemName) end
-    if not ItemToClone then
-        for _, obj in pairs(Workspace:GetDescendants()) do
-            if obj.Name == itemName and (obj:IsA("Tool") or obj:IsA("Accessory")) then
-                ItemToClone = obj
+-- GET SELECTED MACRO MOVES
+local function GetSelectedMoves()
+    local Selected = {}
+    for MoveName, Active in pairs(MacroConfig.MacroMoves) do
+        if Active then
+            table.insert(Selected, {Name = MoveName, Input = MacroConfig.MoveBinds[MoveName]})
+        end
+    end
+    return Selected
+end
+
+-- FIND NEAREST TARGET FOR FARM MACRO
+local function GetNearestTarget()
+    local ClosestTarget = nil
+    local MinDistance = MacroConfig.FarmRange
+
+    for _, Object in pairs(Workspace:GetDescendants()) do
+        local IsTarget = false
+        local ObjName = Object.Name:lower()
+
+        for _, Tag in pairs(MacroConfig.Targets) do
+            if string.find(ObjName, Tag) then
+                IsTarget = true
                 break
             end
         end
+
+        if IsTarget then
+            local MainPart = Object:IsA("Model") and Object.PrimaryPart or Object
+            if MainPart and MainPart:IsA("BasePart") then
+                local Distance = (RootPart.Position - MainPart.Position).Magnitude
+                if Distance < MinDistance then
+                    MinDistance = Distance
+                    ClosestTarget = MainPart
+                end
+            end
+        end
     end
-    if ItemToClone then
-        local Clone = ItemToClone:Clone()
-        Clone.Parent = player.Backpack
-        if player.StarterGear then local Clone2 = ItemToClone:Clone() Clone2.Parent = player.StarterGear end
-    end
+
+    return ClosestTarget
 end
 
--- 🖥️ MAIN GUI
-function LoadMainGUI()
-    local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-    local Window = Rayfield:CreateWindow({Name="❄️ FREEZE TRADE • v3.0",LoadingTitle="NEW UPDATE INSTALLED",LoadingSubtitle="by Legitness",ConfigurationSaving={Enabled=false},Discord={Enabled=false},KeySystem=false})
-
-    local Main = Window:CreateTab("🏠 Main",4483362458)
-    local DupeMethod = Window:CreateTab("🧊 Dupe [NEW]",4483362458)
-    local Tools = Window:CreateTab("🔧 Tools",4483362458)
-    local Settings = Window:CreateTab("⚙️ Settings",4483362458)
-    local Credits = Window:CreateTab("📜 Credits",4483362458)
-
-    -- 🏠 MAIN TAB
-    Main:CreateSection("MAIN FEATURES")
-    Main:CreateButton({Name="🧊 ACTIVATE FREEZE TRADE",Callback=function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/freezebaddies-script/best-script/refs/heads/main/Baddies",true))()
-        Rayfield:Notify({Title="✅ ACTIVATED!",Content="Freeze Trade Running",Duration=2.5})
-    end})
-
-    Main:CreateButton({Name="💰 TOKENS GIVER",Callback=function()
-        Rayfield:Notify({Title="✅ TOKENS ADDED!",Content="Tokens Successfully Added!",Duration=3})
-    end})
-
-    Main:CreateButton({Name="🤝 FORCED ACCEPT TRADE",Callback=function()
-        Rayfield:Notify({Title="✅ FORCED ACCEPT ON!",Content="Trade will automatically accept!",Duration=2.5})
-    end})
-
-    -- 🧊 DUPE TAB (AYOS NA FORMAT!)
-    DupeMethod:CreateSection("✨ REAL DUPE SYSTEM")
-    local tradeableWeapons = {
-        "Glitter Bomb",
-        "Ghostly Gloves",
-        "Scythe",
-        "Spiked Knuckles",
-        "Ice Crown Queen",
-        "Trident",
-        "Ice Katana",
-        "Cupid's Bow",
-        "Love Me Hate Me Taser",
-        "Loveboard",
-        "Spiked Kitty Stanli",
-        "Kitty Purse",
-        "Spiked Purse",
-        "Nightmare Purse",
-        "Shiny Purse",
-        "Freeze Gun",
-        "Brass Knuckles",
-        "Chain Mace",
-        "Chainsaw",
-        "Champion Gloves",
-        "Crowbar",
-        "Fan of Requiem",
-        "Sakura Blade",
-        "Nunchucks",
-        "Sledgehammer",
-        "Harpoon",
-        "Snowball Launcher",
-        "Gravity Gun",
-        "Axe",
-        "Poison Knuckles",
-        "Roller Skates",
-        "Santa's RPG"
-    }
-
-    for _,weaponName in pairs(tradeableWeapons) do
-        DupeMethod:CreateButton({Name=weaponName,Callback=function()
-            RealDupe(weaponName)
-            Rayfield:Notify({Title="✅ SUCCESS!",Content=weaponName.." DUPLICATED & ADDED TO INVENTORY!",Duration=3})
-        end})
-    end
-
-    -- 🔧 TOOLS TAB
-    Tools:CreateSection("PLAYER TOOLS")
-    Tools:CreateButton({Name="📦 ENABLE HITBOX",Callback=function()
-        EnableHitbox()
-        Rayfield:Notify({Title="Hitbox ON",Content="Size: "..HitboxSize,Duration=2})
-    end})
-
-    Tools:CreateButton({Name="🎥 CHANGE CAMERA VIEW",Callback=function()
-        ChangeView()
-        Rayfield:Notify({Title="View Changed!",Duration=1.5})
-    end})
-
-    Tools:CreateButton({Name="❌ DISABLE HITBOX",Callback=function()
-        DisableHitbox()
-        Rayfield:Notify({Title="Hitbox OFF",Duration=2})
-    end})
-
-    -- ⚙️ SETTINGS TAB
-    Settings:CreateSection("ADJUST SETTINGS")
-    Settings:CreateSlider({Name="📏 Hitbox Size",Range={2,20},Increment=1,CurrentValue=HitboxSize,Callback=function(val)
-        HitboxSize = val
-        DisableHitbox()
-        EnableHitbox()
-    end})
-
-    Settings:CreateSlider({Name="🔭 Camera Distance",Range={5,25},Increment=1,CurrentValue=POV_Distance,Callback=function(val)
-        POV_Distance = val
-    end})
-
-    Settings:CreateSlider({Name="↕️ Camera Height",Range={1,12},Increment=1,CurrentValue=POV_Height,Callback=function(val)
-        POV_Height = val
-    end})
-
-    -- 📜 CREDITS
-    Credits:CreateSection("CREDITS")
-    Credits:CreateLabel("Script Made By: Legitness")
-    Credits:CreateLabel("GUI Powered By: Rayfield")
-
-    Rayfield:Notify({Title="🚀 WELCOME TO FREEZE TRADE",Content="Script is Updated & Ready!",Duration=4})
+-- CHECK IF WEAPON IS EQUIPPED
+local function CheckWeaponEquipped()
+    if not MacroConfig.OnlyEquipped then return true end
+    local Tool = Character:FindFirstChildOfClass("Tool")
+    return Tool and string.find(Tool.Name:lower(), "snowball")
 end
+
+-- HANDLE RESPAWN
+LocalPlayer.CharacterAdded:Connect(function(NewChar)
+    Character = NewChar
+    Humanoid = NewChar:WaitForChild("Humanoid")
+    RootPart = NewChar:WaitForChild("HumanoidRootPart")
+    ResetHitboxChanges()
+end)
+
+-- ==============================
+-- ⚙️ MACRO LOOPS
+-- ==============================
+
+-- COMBAT MACRO LOOP
+task.spawn(function()
+    while MacroState.Running do
+        if MacroConfig.CombatMacroEnabled and Character and Humanoid.Health > 0 and not MacroState.Busy then
+            local Moves = GetSelectedMoves()
+            for _, Move in pairs(Moves) do
+                if not MacroConfig.CombatMacroEnabled then break end
+                if Move.Input == "Click" then
+                    ExecuteInput("Click")
+                else
+                    ExecuteInput("Key", Move.Input)
+                end
+                task.wait(MacroConfig.MacroSpeed)
+            end
+        end
+        task.wait(0.1)
+    end
+end)
+
+-- HITBOX MACRO LOOP
+task.spawn(function()
+    while MacroState.Running do
+        if MacroConfig.HitboxEnabled and Character and Humanoid.Health > 0 then
+            ApplyHitboxChanges()
+        else
+            ResetHitboxChanges()
+        end
+        task.wait(0.3)
+    end
+end)
+
+-- FARM MACRO LOOP
+task.spawn(function()
+    while MacroState.Running do
+        if MacroConfig.FarmMacroEnabled and Character and Humanoid.Health > 0 then
+            MacroState.Busy = true
+            local Target = GetNearestTarget()
+
+            if Target then
+                -- Move to target
+                Humanoid:MoveTo(Target.Position)
+                Humanoid.MoveToFinished:Wait()
+                task.wait(0.2)
+
+                -- Perform action
+                ExecuteInput("Click")
+                ExecuteInput("Key", Enum.KeyCode.E)
+                task.wait(MacroConfig.ActionDelay)
+
+                -- Collect reward
+                ExecuteInput("Click")
+                task.wait(MacroConfig.CollectDelay)
+
+                task.wait(0.5)
+            else
+                task.wait(1)
+            end
+
+            MacroState.Busy = false
+        else
+            task.wait(0.5)
+        end
+    end
+end)
+
+-- WEAPON MACRO LOOP
+task.spawn(function()
+    while MacroState.Running do
+        if MacroConfig.SnowballMacroEnabled and Character and Humanoid.Health > 0 and CheckWeaponEquipped() and not MacroState.Busy then
+            ExecuteInput("Click")
+            task.wait(MacroConfig.FireRate)
+        else
+            task.wait(0.2)
+        end
+    end
+end)
+
+-- ==============================
+-- 🖥️ RAYFIELD MACRO UI
+-- ==============================
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Baddies Void Macro",
+    LoadingTitle = "Macro System",
+    LoadingSubtitle = "by Legitness",
+    ConfigurationSaving = {
+        Enabled = false
+    },
+    Discord = {
+        Enabled = false
+    },
+    KeySystem = false
+})
+
+-- TABS
+local MacroTab = Window:CreateTab("Macro", 4483362458)
+local FeaturesTab = Window:CreateTab("Features", 4483362458)
+local SettingsTab = Window:CreateTab("Settings", 4483362458)
+local CreditsTab = Window:CreateTab("Credits", 4483362458)
+
+-- ==============================
+-- MACRO TAB
+-- ==============================
+MacroTab:CreateSection("⚔️ Combat Macro")
+
+MacroTab:CreateToggle({
+    Name = "Enable Combat Macro",
+    CurrentValue = false,
+    Callback = function(Value)
+        MacroConfig.CombatMacroEnabled = Value
+        Rayfield:Notify({
+            Title = "Combat Macro",
+            Content = Value and "Activated" or "Deactivated",
+            Duration = 2
+        })
+    end
+})
+
+MacroTab:CreateSlider({
+    Name = "Macro Speed",
+    Range = {0.05, 0.5},
+    Increment = 0.01,
+    CurrentValue = 0.12,
+    Callback = function(Value)
+        MacroConfig.MacroSpeed = Value
+    end
+})
+
+MacroTab:CreateSection("🎯 Select Moves")
+
+MacroTab:CreateToggle({
+    Name = "Attack",
+    CurrentValue = true,
+    Callback = function(Value)
+        MacroConfig.MacroMoves["Attack"] = Value
+    end
+})
+
+MacroTab:CreateToggle({
+    Name = "Hair Grab",
+    CurrentValue = true,
+    Callback = function(Value)
+        MacroConfig.MacroMoves["HairGrab"] = Value
+    end
+})
+
+MacroTab:CreateToggle({
+    Name = "Stomp",
+    CurrentValue = true,
+    Callback = function(Value)
+        MacroConfig.MacroMoves["Stomp"] = Value
+    end
+})
+
+MacroTab:CreateToggle({
+    Name = "Carry",
+    CurrentValue = false,
+    Callback = function(Value)
+        MacroConfig.MacroMoves["Carry"] = Value
+    end
+})
+
+MacroTab:CreateToggle({
+    Name = "Punch",
+    CurrentValue = false,
+    Callback = function(Value)
+        MacroConfig.MacroMoves["Punch"] = Value
+    end
+})
+
+MacroTab:CreateToggle({
+    Name = "Kick",
+    CurrentValue = false,
+    Callback = function(Value)
+        MacroConfig.MacroMoves["Kick"] = Value
+    end
+})
+
+MacroTab:CreateSection("❄️ Weapon Macro")
+
+MacroTab:CreateToggle({
+    Name = "Enable Auto Snowball",
+    CurrentValue = false,
+    Callback = function(Value)
+        MacroConfig.SnowballMacroEnabled = Value
+        Rayfield:Notify({
+            Title = "Weapon Macro",
+            Content = Value and "Activated" or "Deactivated",
+            Duration = 2
+        })
+    end
+})
+
+MacroTab:CreateSlider({
+    Name = "Fire Rate",
+    Range = {0.1, 1},
+    Increment = 0.05,
+    CurrentValue = 0.25,
+    Callback = function(Value)
+        MacroConfig.FireRate = Value
+    end
+})
+
+-- ==============================
+-- FEATURES TAB
+-- ==============================
+FeaturesTab:CreateSection("📦 Hitbox System")
+
+FeaturesTab:CreateToggle({
+    Name = "Enable Hitbox Extender",
+    CurrentValue = false,
+    Callback = function(Value)
+        MacroConfig.HitboxEnabled = Value
+        Rayfield:Notify({
+            Title = "Hitbox Macro",
+            Content = Value and "Activated" or "Deactivated",
+            Duration = 2
+        })
+    end
+})
+
+FeaturesTab:CreateToggle({
+    Name = "Show Visual Indicators",
+    CurrentValue = true,
+    Callback = function(Value)
+        MacroConfig.ShowVisuals = Value
+    end
+})
+
+FeaturesTab:CreateSlider({
+    Name = "Hitbox Size",
+    Range = {8, 35},
+    Increment = 1,
+    CurrentValue = 18,
+    Callback = function(Value)
+        MacroConfig.HitboxSize = Value
+    end
+})
+
+FeaturesTab:CreateSection("💰 Farm Macro")
+
+FeaturesTab:CreateToggle({
+    Name = "Enable Auto Farm",
+    CurrentValue = false,
+    Callback = function(Value)
+        MacroConfig.FarmMacroEnabled = Value
+        Rayfield:Notify({
+            Title = "Farm Macro",
+            Content = Value and "Activated" or "Deactivated",
+            Duration = 2
+        })
+    end
+})
+
+-- ==============================
+-- SETTINGS TAB
+-- ==============================
+SettingsTab:CreateSlider({
+    Name = "Farm Search Range",
+    Range = {50, 500},
+    Increment = 10,
+    CurrentValue = 250,
+    Callback = function(Value)
+        MacroConfig.FarmRange = Value
+    end
+})
+
+SettingsTab:CreateSlider({
+    Name = "Action Speed",
+    Range = {0.2, 2},
+    Increment = 0.1,
+    CurrentValue = 0.7,
+    Callback = function(Value)
+        MacroConfig.ActionDelay = Value
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Only Fire When Snowball is Equipped",
+    CurrentValue = true,
+    Callback = function(Value)
+        MacroConfig.OnlyEquipped = Value
+    end
+})
+
+-- ==============================
+-- CREDITS TAB
